@@ -1,7 +1,7 @@
 # CSE465_565
 
 ## Name
-Z+- Interpreter
+Zenith: Z+- Interpreter
 
 ## Description
 An interpreter written in Java to run Z+- programs.
