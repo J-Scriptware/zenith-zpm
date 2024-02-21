@@ -26,7 +26,7 @@
 ; ================ Solve the following functions ===================
 ; Return a list with only the negatives items
 (define (negatives lst)
-	lst
+	(filter (lambda (x) (< x 0)) lst)
 )
 
 (line "negatives")
