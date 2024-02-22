@@ -1,0 +1,13 @@
+A = 10 ;
+B = "hello" ;
+PRINT A ;
+PRINT B ;
+A += 5 ;
+PRINT A ;
+B += " world" ;
+PRINT B ;
+FOR 3 A *= 2 ; PRINT A ; ENDFOR
+C = "Test" ;
+PRINT C ;
+C += " Passed" ;
+PRINT C ;
