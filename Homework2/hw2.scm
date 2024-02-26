@@ -40,8 +40,12 @@
 ; Returns true if the two lists have identical structure
 ; in terms of how many elements and nested lists they have in the same order
 (define (struct lst1 lst2)
-	#t
-)
+  (cond ((and (null? lst1) (null? lst2)) #t)
+        ((or (null? lst1) (null? lst2)) #f)
+        ((and (list? (car lst1)) (list? (car lst2)))
+         (and (struct (car lst1) (car lst2)) (struct (cdr lst1) (cdr lst2))))
+        ((or (list? (car lst1)) (list? (car lst2))) #f)
+        (else (struct (cdr lst1) (cdr lst2)))))
 
 (line "struct")
 (mydisplay (struct '(a b c (c a b)) '(1 2 3 (a b c))))  ; -> #t
@@ -69,8 +73,11 @@
 ; that are inside nested loops taken out. So we want to flatten all elements and have
 ; them all in a single list. For example '(a (a a) a))) should become (a a a a)
 (define (flatten lst)
-	'()
-)
+  (if (null? lst)
+      '()
+      (if (list? (car lst))
+          (append (flatten (car lst)) (flatten (cdr lst)))
+          (cons (car lst) (flatten (cdr lst))))))
 
 (line "flatten")
 (mydisplay (flatten '(a b c)))  ; -> (a b c)
