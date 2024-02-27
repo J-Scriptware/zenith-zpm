@@ -40,6 +40,7 @@
 ; Returns true if the two lists have identical structure
 ; in terms of how many elements and nested lists they have in the same order
 (define (struct lst1 lst2)
+; Recursively compares the structure of two lists
   (cond ((and (null? lst1) (null? lst2)) #t)
         ((or (null? lst1) (null? lst2)) #f)
         ((and (list? (car lst1)) (list? (car lst2)))
@@ -71,6 +72,7 @@
 ; that are inside nested loops taken out. So we want to flatten all elements and have
 ; them all in a single list. For example '(a (a a) a))) should become (a a a a)
 (define (flatten lst)
+; Recursively concatenates all elements of a nested list into a flat list
   (if (null? lst)
       '()
       (if (list? (car lst))
@@ -89,6 +91,7 @@
 ; ((1 a) (1 b) (1 c) (2 a) (2 b) (2 c))
 ; lst1 & lst2 -- two flat lists.
 (define (crossproduct lst1 lst2)
+; Constructs the cross product of two lists by pairing each element of the first list with every element of the second
   (if (null? lst1)
       '() ; If the first list is empty, return an empty list
       (append 
@@ -108,6 +111,7 @@
 ; from the 'zipcodes.scm' file for this. You can just call 'zipcodes' directly
 ; as shown in the sample example
 (define (getLatLon zipcode zips)
+; Finds the first match for a zipcode and extracts the latitude and longitude
   (let ((found (assoc zipcode zips))) ; Use assoc to find the first match by zipcode
     (if found
         (list (cadr (cdr (cdr (cdr found)))) ; Latitude
@@ -124,6 +128,7 @@
 ; placeName -- is the text corresponding to the name of the place
 ; zips -- the zipcode DB
 (define (getCommonPlaces state1 state2 zips)
+; Finds place names that are common between two states
   (let ((places1 (map cadr (filter (lambda (x) (string=? (caddr x) state1)) zips)))
         (places2 (map cadr (filter (lambda (x) (string=? (caddr x) state2)) zips))))
     (filter (lambda (place) (member place places2 equal?)) places1)))
@@ -138,6 +143,7 @@
 ; state -- state
 ; zips -- zipcode DB
 (define (zipCount state zips)
+; Counts the number of zip code entries for a given state
   (define (state-match? zip-record)
     (string=? state (caddr zip-record))) ; caddr retrieves the third element, which is the state
   (length (filter state-match? zips)))
@@ -158,11 +164,14 @@
 ; filters -- list of predicates to apply to the individual elements
 
 (define (filterList lst filters)
+; Filters a list of items based on a list of predicates
   (define (apply-filters item filters)
+  ; Recursively applies filters to an item
     (cond ((null? filters) #t) ; If no more filters, item passes
           ((not ((car filters) item)) #f) ; Current filter fails
           (else (apply-filters item (cdr filters))))) ; Continue with next filter
   (define (filter-recursive lst)
+  ; Recursively applies filters to a list
     (cond ((null? lst) '()) ; End of list
           ((apply-filters (car lst) filters) ; Item passes all filters
            (cons (car lst) (filter-recursive (cdr lst))))
