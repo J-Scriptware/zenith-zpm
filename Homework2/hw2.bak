@@ -108,12 +108,8 @@
 ; from the 'zipcodes.scm' file for this. You can just call 'zipcodes' directly
 ; as shown in the sample example
 (define (getLatLon zipcode zips)
-  (let ((found (assoc zipcode zips))) ; Use assoc to find the first match by zipcode
-    (if found
-        (list (cadr (cdr (cdr (cdr found)))) ; Latitude
-              (cadr (cdr (cdr (cdr (cdr found)))))) ; Longitude
-        '()))) ; Return an empty list if not found
-
+	(list zipcode (car zips))
+)
 
 (line "getLatLon")
 (mydisplay (getLatLon 45056 zipcodes))
@@ -124,10 +120,8 @@
 ; placeName -- is the text corresponding to the name of the place
 ; zips -- the zipcode DB
 (define (getCommonPlaces state1 state2 zips)
-  (let ((places1 (map cadr (filter (lambda (x) (string=? (caddr x) state1)) zips)))
-        (places2 (map cadr (filter (lambda (x) (string=? (caddr x) state2)) zips))))
-    (filter (lambda (place) (member place places2 equal?)) places1)))
-
+	(list state1 state2)
+)
 
 (line "getCommonPlaces")
 (mydisplay (getCommonPlaces "OH" "MI" zipcodes))
