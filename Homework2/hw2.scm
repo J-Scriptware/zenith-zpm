@@ -34,7 +34,7 @@
 (mydisplay (negatives '(-1)))  ; -> (-1)
 (mydisplay (negatives '(-1 1 2 3 4 -4 5)))  ; -> (-1 -4)
 (mydisplay (negatives '(1 1 2 3 4 4 5)))  ; -> ()
-(line "negatives")
+
 ; ---------------------------------------------
 
 ; Returns true if the two lists have identical structure
@@ -51,7 +51,7 @@
 (mydisplay (struct '(a b c (c a b)) '(1 2 3 (a b c))))  ; -> #t
 (mydisplay (struct '(a b c d (c a b)) '(1 2 3 (a b c))))  ; -> #f
 (mydisplay (struct '(a b c (c a b)) '(1 2 3 (a b c) 0)))  ; -> #f
-(line "struct")
+
 ; ---------------------------------------------
 
 ; Returns a list of two numeric values. The first is the smallest
@@ -64,8 +64,6 @@
 (line "minAndMax")
 (mydisplay (minAndMax '(1 2 -3 4 2)))  ; -> (-3 4)
 (mydisplay (minAndMax '(1)))  ; -> (1 1)
-(line "minAndMax")
-
 
 ; ---------------------------------------------
 
@@ -83,7 +81,6 @@
 (mydisplay (flatten '(a b c)))  ; -> (a b c)
 (mydisplay (flatten '(a (a a) a)))  ; -> (a a a a)
 (mydisplay (flatten '((a b) (c (d) e) f)))  ; -> (a b c d e f)
-(line "flatten")
 ; ---------------------------------------------
 
 ; The paramters are two lists. The result should contain the cross product
@@ -92,12 +89,15 @@
 ; ((1 a) (1 b) (1 c) (2 a) (2 b) (2 c))
 ; lst1 & lst2 -- two flat lists.
 (define (crossproduct lst1 lst2)
-	'()
-)
+  (if (null? lst1)
+      '() ; If the first list is empty, return an empty list
+      (append 
+       (map (lambda (item2) (list (car lst1) item2)) lst2) ; Pair the first element of lst1 with each element of lst2
+       (crossproduct (cdr lst1) lst2)))) ; Recur on the rest of lst1
 
 (line "crossproduct")
 (mydisplay (crossproduct '(1 2) '(a b c)))
-(line "crossproduct")
+
 ; ---------------------------------------------
 
 ; Returns the first latitude and longitude of a particular zip code.
@@ -131,49 +131,20 @@
 
 (line "getCommonPlaces")
 (mydisplay (getCommonPlaces "OH" "MI" zipcodes))
-(line "getCommonPlaces")
-; ---------------------------------------------
 
-; #### Only for Graduate Students ####
-; Returns a list of all the place names common to a set of states.
-; states -- is list of state names
-; zips -- the zipcode DB
-(define (getCommonPlaces2 states zips)
-	'("Oxford" "Franklin")
-)
-
-(line "getCommonPlaces2")
-(mydisplay (getCommonPlaces2 '("OH" "MI" "PA") zipcodes))
-(line "getCommonPlaces2")
 ; ---------------------------------------------
 
 ; Returns the number of zipcode entries for a particular state.
 ; state -- state
 ; zips -- zipcode DB
 (define (zipCount state zips)
-	0
-)
+  (define (state-match? zip-record)
+    (string=? state (caddr zip-record))) ; caddr retrieves the third element, which is the state
+  (length (filter state-match? zips)))
 
 (line "zipCount")
 (mydisplay (zipCount "OH" zipcodes))
-(line "zipCount")
 ; ---------------------------------------------
-
-; #### Only for Graduate Students ####
-; Returns the distance between two zip codes in "meters".
-; Use lat/lon. Do some research to compute this.
-; You can find some info here: https://www.movable-type.co.uk/scripts/latlong.html
-; zip1 & zip2 -- the two zip codes in question.
-; zips -- zipcode DB
-(define (getDistanceBetweenZipCodes zip1 zip2 zips)
-	0
-)
-
-(line "getDistanceBetweenZipCodes")
-(mydisplay (getDistanceBetweenZipCodes 45056 48122 zipcodes))
-(line "getDistanceBetweenZipCodes")
-; ---------------------------------------------
-
 ; Some sample predicates
 (define (POS? x) (> x 0))
 (define (NEG? x) (< x 0))
@@ -187,13 +158,21 @@
 ; filters -- list of predicates to apply to the individual elements
 
 (define (filterList lst filters)
-	lst
-)
+  (define (apply-filters item filters)
+    (cond ((null? filters) #t) ; If no more filters, item passes
+          ((not ((car filters) item)) #f) ; Current filter fails
+          (else (apply-filters item (cdr filters))))) ; Continue with next filter
+  (define (filter-recursive lst)
+    (cond ((null? lst) '()) ; End of list
+          ((apply-filters (car lst) filters) ; Item passes all filters
+           (cons (car lst) (filter-recursive (cdr lst))))
+          (else (filter-recursive (cdr lst))))) ; Skip item
+  (filter-recursive lst))
+
 
 (line "filterList")
 (mydisplay (filterList '(1 2 3 11 22 33 -1 -2 -3 -11 -22 -33) (list POS?)))
 (mydisplay (filterList '(1 2 3 11 22 33 -1 -2 -3 -11 -22 -33) (list POS? even?)))
 (mydisplay (filterList '(1 2 3 11 22 33 -1 -2 -3 -11 -22 -33) (list POS? even? LARGE?)))
-(line "filterList")
-; ---------------------------------------------
+
 
