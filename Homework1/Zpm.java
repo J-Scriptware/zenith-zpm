@@ -3,7 +3,6 @@ import java.nio.file.*; // Import classes for working with file paths
 import java.util.*; // Import classes for maps and collections
 import java.util.stream.Collectors;
 import java.util.List;
-import java.util.logging.Logger; // Import classes for logging error handling
 
 public class Zpm {
     // Map to store variables and their values
@@ -13,26 +12,24 @@ public class Zpm {
     private static final Map<String, Object> variables = new HashMap<>();
 
     public static void main(String[] args) throws RuntimeException {
-        Logger logger = Logger.getLogger("Zpm");
-
         if (args.length != 1 || !args[0].endsWith(".zpm")) {
-            logger.severe("Error: Please provide a .zpm file as an argument.");
+            System.out.println("Error: Please provide a .zpm file as an argument.");
             return;
         }
 
-        String fileName = args[0];
+        Path filePath = Paths.get(args[0]);
+        if (!Files.exists(filePath)) {
+            System.out.println("Error: File does not exist.");
+            return;
+        }
         try {
-            // Read all lines from the script file
-            List<String> lines = Files.readAllLines(Paths.get(fileName));
-            List<String> trimmedLines = trimLines(lines);
-            processLines(trimmedLines); // Process each trimmed line
-
+            List<String> lines = Files.readAllLines(filePath);
+            lines = trimLines(lines);
+            processLines(lines);
         } catch (IOException e) {
-            logger.severe("Error reading file: " + e.getMessage()); // Catch file reading errors
-        } catch (RuntimeException e) {
-            logger.severe("Runtime Error: " + e.getMessage()); // Catch runtime errors
+            System.out.println("Error reading file: " + e.getMessage());
         } catch (Exception e) {
-            throw new IllegalStateException();
+            System.out.println(e.getMessage());
         }
     }
     private static List<String> trimLines(List<String> lines) {
@@ -56,7 +53,7 @@ public class Zpm {
 
     // Inside the Zpm class, replace the existing processAssignment method with this:
 
-    private static void processAssignment(String line, int lineNum) throws Exception {
+    private static void processAssignment(String line, int lineNum) throws IllegalArgumentException {
         String[] parts = line.split(" ", 3); // Split by the first occurrence of space to accommodate compound assignments
         String varName = parts[0].trim();
         if (!varName.matches(VAR_PATTERN)) {
@@ -105,7 +102,7 @@ public class Zpm {
             if (varValue instanceof Integer && value.matches(INTEGER_PATTERN)) {
                 variables.put(varName, (Integer) varValue + Integer.parseInt(value));
             } else if (varValue instanceof String && value.startsWith("\"") && value.endsWith("\"")) {
-                variables.put(varName, varValue.toString() + value.substring(1, value.length() - 1));
+                variables.put(varName, varValue + value.substring(1, value.length() - 1));
             } else if(variables.containsKey(value)) {
                 variables.put(varName, varValue.toString() + variables.get(value).toString());
             } else {
@@ -130,19 +127,22 @@ public class Zpm {
         }
     }
 
-    private static int processForLoop(List<String> lines, int lineNum) throws Exception {
+    private static int processForLoop(List<String> lines, int lineNum) {
         String[] parts = lines.get(lineNum - 1).split(" ");
         int loopCount = Integer.parseInt(parts[1]);
-        int endLineNum = findEndForLineNum(lines, lineNum);
-        List<String> loopLines = lines.subList(lineNum, endLineNum);
-
-        for (int i = 0; i < loopCount; i++) {
+        List<String> loopLines = new ArrayList<>();
+        int i = lineNum;
+        for (; i < lines.size(); i++) {
+            String line = lines.get(i).trim();
+            if (line.equals("ENDFOR")) break;
+            loopLines.add(line);
+        }
+        for (int j = 0; j < loopCount; j++) {
             for (String loopLine : loopLines) {
                 processAssignment(loopLine, lineNum);
             }
         }
-
-        return endLineNum;
+        return i; // Return the line number after ENDFOR to continue processing the remaining lines correctly
     }
 
     private static void processPrintStatement(String line, int lineNum) throws IllegalArgumentException{
