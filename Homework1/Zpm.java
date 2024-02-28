@@ -16,6 +16,20 @@ public class Zpm {
     private static final String INTEGER_PATTERN = "-?\\d+";
     private static final Map<String, Object> variables = new HashMap<>();
 
+    public static class ZpmRuntimeException extends RuntimeException {
+        private final int lineNum;
+
+        ZpmRuntimeException(String message, int lineNum) {
+            super(message);
+            this.lineNum = lineNum;
+        }
+
+        @SuppressWarnings("unused")
+        int getLineNum() {
+            return lineNum;
+        }
+    }
+
     /**
      * The main method is the entry point of the program. It takes an array of string arguments,
      * checks if the argument is a valid file with a ".zpm" extension, reads the lines from the file,
@@ -25,27 +39,29 @@ public class Zpm {
      *             of a ".zpm" file.
      * @throws ZpmRuntimeException If there is an error reading the file or processing the lines.
      */
-    public static void main(String[] args) throws RuntimeException {
+    public static void main(String[] args) {
+        try {
+            List<String> lines = validateAndReadFile(args);
+            lines = trimLines(lines); // Assuming the existence of a method that trims the lines
+            processLines(lines); // Assuming the existence of a method that processes the lines
+        } catch (RuntimeException | IOException e) {
+            System.out.println(e.getMessage());
+        }
+    }
+
+    private static List<String> validateAndReadFile(String[] args) throws ZpmRuntimeException, IOException {
         if (args.length != 1 || !args[0].endsWith(".zpm")) {
-            System.out.println("Error: Please provide a .zpm file as an argument.");
-            return;
+            throw new IllegalArgumentException("Error: Please provide a .zpm file as an argument.");
         }
 
         Path filePath = Paths.get(args[0]);
         if (!Files.exists(filePath)) {
-            System.out.println("Error: File does not exist.");
-            return;
+            throw new IOException("Error: File does not exist.");
         }
-        try {
-            List<String> lines = Files.readAllLines(filePath);
-            lines = trimLines(lines);
-            processLines(lines);
-        } catch (IOException e) {
-            System.out.println("Error reading file: " + e.getMessage());
-        } catch (Exception e) {
-            System.out.println(e.getMessage());
-        }
+
+        return Files.readAllLines(filePath);
     }
+
     /**
      * Trims the leading and trailing whitespace from each line in the given list.
      *
@@ -219,28 +235,15 @@ public class Zpm {
      *
      * @param line    the PRINT statement to be processed
      * @param lineNum the line number of the PRINT statement in the input file
-     * @throws IllegalArgumentException if the variable name is invalid or if the variable is not found
+     * @throws ZpmRuntimeException if the variable name is invalid or if the variable is not found
      */
-    private static void processPrintStatement(String line, int lineNum) throws IllegalArgumentException{
+    private static void processPrintStatement(String line, int lineNum) throws ZpmRuntimeException{
         String varName = line.substring(6, line.length() -1).trim();
 
         if (!variables.containsKey(varName)) {
-            throw new IllegalArgumentException("RUNTIME ERROR: line " + lineNum);
+            throw new ZpmRuntimeException("RUNTIME ERROR: line ", lineNum);
         }
         System.out.println(varName + "=" + variables.get(varName));
-    }
-    protected static class ZpmRuntimeException extends RuntimeException {
-        private final int lineNum;
-
-        ZpmRuntimeException(String message, int lineNum) {
-            super(message);
-            this.lineNum = lineNum;
-        }
-
-        @SuppressWarnings("unused")
-        int getLineNum() {
-            return lineNum;
-        }
     }
 }
 
