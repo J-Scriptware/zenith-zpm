@@ -181,31 +181,38 @@ public class Zpm {
             }
         }
     }
-
     /**
-     * Processes a FOR loop statement provided in the list of lines.
+     * Processes a for loop block of code.
      *
-     * @param lines    The list of lines containing the FOR loop statement.
-     * @param lineNum  The line number of the FOR loop statement in the input file.
-     * @return The line number after ENDFOR to continue processing the remaining lines correctly.
+     * @param lines           The list of lines containing the for loop block.
+     * @param currentLineNum  The current line number where the for loop block starts.
+     * @return The line number after the ENDFOR statement.
+     * @throws ZpmRuntimeException If there is an error while processing the for loop block.
      */
-    private static int processForLoop(List<String> lines, int lineNum) {
-        String[] parts = lines.get(lineNum - 1).split(" ");
+    private static int processForLoop(List<String> lines, int currentLineNum) throws ZpmRuntimeException {
+        String[] parts = lines.get(currentLineNum - 1).split(" ");
         int loopCount = Integer.parseInt(parts[1]);
-        List<String> loopLines = new ArrayList<>();
-        int i = lineNum;
-        for (; i < lines.size(); i++) {
-            String line = lines.get(i).trim();
-            if (line.equals("ENDFOR")) break;
-            loopLines.add(line);
-        }
+        int loopEnd = findEndForLineNum(lines, currentLineNum);
+
         for (int j = 0; j < loopCount; j++) {
-            for (String loopLine : loopLines) {
-                processAssignment(loopLine, lineNum);
+            for (int i = currentLineNum; i < loopEnd; i++) {
+                String loopLine = lines.get(i).trim();
+                processAssignment(loopLine, i + 1); // Adjust line number for accurate error reporting
             }
         }
-        return i; // Return the line number after ENDFOR to continue processing the remaining lines correctly
+
+        return loopEnd + 1; // Return the line number after ENDFOR
     }
+
+    private static int findEndForLineNum(List<String> lines, int startLineNum) {
+        for (int i = startLineNum; i < lines.size(); i++) {
+            if (lines.get(i).trim().equals("ENDFOR")) {
+                return i; // Return the actual line number of ENDFOR for further processing
+            }
+        }
+        return startLineNum; // Should never happen if input is correct, but safe fallback
+    }
+
 
     /**
      * Processes a PRINT statement provided in a string format.
