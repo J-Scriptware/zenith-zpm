@@ -98,13 +98,13 @@ public class Zpm {
      *
      * @param line    the assignment statement to be processed
      * @param lineNum the line number of the assignment statement in the input file
-     * @throws IllegalArgumentException if the variable name is invalid or if the operation is unsupported
+     * @throws ZpmRuntimeException if the variable name is invalid or if the operation is unsupported
      */
-    private static void processAssignment(String line, int lineNum) throws IllegalArgumentException {
+    private static void processAssignment(String line, int lineNum) throws ZpmRuntimeException {
         String[] parts = line.split(" ", 3); // Split by the first occurrence of space to accommodate compound assignments
         String varName = parts[0].trim();
         if (!varName.matches(VAR_PATTERN)) {
-            throw new IllegalArgumentException("RUNTIME ERROR: Invalid variable name at line " + lineNum);
+            throw new ZpmRuntimeException("RUNTIME ERROR: Invalid variable name at line ", lineNum);
         }
 
         // Determine the type of assignment
@@ -121,7 +121,7 @@ public class Zpm {
                 modifyValue(varName, value, operation, lineNum);
                 break;
             default:
-                throw new IllegalArgumentException("RUNTIME ERROR: Unsupported operation at line " + lineNum);
+                throw new ZpmRuntimeException("RUNTIME ERROR: Unsupported operation at line ", lineNum);
         }
     }
 
@@ -131,9 +131,9 @@ public class Zpm {
      * @param varName  The name of the variable to assign a value to.
      * @param value    The value to assign to the variable.
      * @param lineNum  The line number at which this assignment is performed.
-     * @throws IllegalArgumentException if the variable name is invalid or if the assignment is unsupported.
+     * @throws ZpmRuntimeException if the variable name is invalid or if the assignment is unsupported.
      */
-    private static void assignValue(String varName, String value, int lineNum) throws IllegalArgumentException {
+    private static void assignValue(String varName, String value, int lineNum) throws ZpmRuntimeException {
         if (value.matches(INTEGER_PATTERN)) { // Integer assignment
             variables.put(varName, Integer.parseInt(value));
         } else if (value.startsWith("\"") && value.endsWith("\"")) { // String assignment
@@ -141,7 +141,7 @@ public class Zpm {
         } else if (variables.containsKey(value)) { // Variable assignment
             variables.put(varName, variables.get(value));
         } else {
-            throw new IllegalArgumentException("RUNTIME ERROR: Undefined variable " + value + " at line " + lineNum);
+            throw new ZpmRuntimeException("RUNTIME ERROR: Undefined variable " + value + " at line ", lineNum);
         }
     }
 
@@ -151,8 +151,8 @@ public class Zpm {
      * @param lineNum the line number where the invalid operation or type mismatch occurred.
      * @throws IllegalArgumentException always throws this exception with the specific error message.
      */
-    private static void throwInvalidOperationException(int lineNum) throws IllegalArgumentException {
-        throw new IllegalArgumentException("RUNTIME ERROR: Invalid operation or type mismatch at line " + lineNum);
+    private static void throwInvalidOperationException(int lineNum) throws ZpmRuntimeException {
+        throw new ZpmRuntimeException("RUNTIME ERROR: Invalid operation or type mismatch at line ", lineNum);
     }
 
     /**
@@ -162,11 +162,11 @@ public class Zpm {
      * @param value     the value to use for the operation
      * @param operation the operation to perform on the variable
      * @param lineNum   the line number where the method is called
-     * @throws IllegalArgumentException if the variable is not initialized or there is a type mismatch
+     * @throws ZpmRuntimeException if the variable is not initialized or there is a type mismatch
      */
-    private static void modifyValue(String varName, String value, String operation, int lineNum) throws IllegalArgumentException {
+    private static void modifyValue(String varName, String value, String operation, int lineNum) throws ZpmRuntimeException {
         if (!variables.containsKey(varName)) {
-            throw new IllegalArgumentException("RUNTIME ERROR: Variable " + varName + " used before initialization at line " + lineNum);
+            throw new ZpmRuntimeException("RUNTIME ERROR: Variable " + varName + " used before initialization at line ", lineNum);
         }
         Object varValue = variables.get(varName);
         if (operation.equals("+=")) {
@@ -177,7 +177,7 @@ public class Zpm {
             } else if(variables.containsKey(value)) {
                 variables.put(varName, varValue.toString() + variables.get(value).toString());
             } else {
-                throw new IllegalArgumentException("RUNTIME ERROR: Type mismatch for += at line " + lineNum);
+                throw new ZpmRuntimeException("RUNTIME ERROR: Type mismatch for += at line ", lineNum);
             }
         } else {
             if (varValue instanceof Integer && value.matches(INTEGER_PATTERN)) {
