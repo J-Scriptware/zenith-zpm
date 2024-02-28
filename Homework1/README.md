@@ -12,4 +12,4 @@ Run the following code in your terminal:
 java Zpm prog.zpm`
 
 ## Authors and acknowledgment
-Crafted by James Beaupry, with assistance from the following tools: Chat GPT 4, Google Gemini, IntelliJ AI Assistant
+Crafted by James Beaupry, with a helping hand from some innovative tools: OpenAI's GPT-4, Google Gemini, and the IntelliJ AI Assistant.
