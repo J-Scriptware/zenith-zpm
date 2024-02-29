@@ -11,15 +11,15 @@ Zenith's technical framework is designed for robust ZPM script execution, emphas
 
 - **Variable Types**: Directly supports integer and string variables, enabling diverse data manipulation and interaction within scripts.
 
-- **Arithmetic and Logical Operations**: Facilitates arithmetic (+, -, *) on integers and concatenation for strings, alongside equality checks, with optimized performance for each operation type.
+- **Arithmetic and Logical Operations**: Facilitates arithmetic (+, -, *) on integers and concatenation for strings, with optimized performance for each operation type.
 
-- **For Loops**: Implements for loop constructs, allowing iterative execution over blocks of code, enhancing script logic and repeatability.
+- **For Loops**: Implements for loop constructs. This capability supports iterative execution over blocks of code, enhancing script logic by allowing the execution of repeating tasks.
 
-- **Error Diagnostics**: Offers comprehensive error reporting for both syntax and runtime issues, aiding in efficient troubleshooting and correction.
+- **Error Diagnostics**: Offers comprehensive error reporting for both syntax and runtime issues. Unrecognized operations, type mismatches, unknown variables or incorrect loop syntax - all such errors are gracefully handled and conveyed to the user, assisting in efficient troubleshooting and correction.
 
-- **Efficient Execution**: Engineered for performance, Zenith ensures rapid parsing and execution of ZPM scripts, maintaining high efficiency across operations.
+- **Efficient Execution**: Zenith maintains high efficiency across operations. Its design ensures rapid parsing and execution of ZPM scripts, allowing for quick and responsive performance.
 
-- **Dynamic Variable Management**: Provides advanced variable handling capabilities, supporting on-the-fly creation, assignment, and modification of both integer and string variables.
+- **Dynamic Variable Management**: Advanced handling of integer and string variables is a primary focus of Zenith, supporting on-the-fly creation, assignment, and modification of variables.
 
 ## Requirements
 - Java 11 or above.
