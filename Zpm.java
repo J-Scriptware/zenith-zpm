@@ -344,3 +344,7 @@ public class Zpm {
     }
 }
 
+// Crafted with care, by James Beaupry.
+
+// An additional sprinkle of code magic provided by:
+// IntelliJ AI Assistant, ChatGPT 4 - Code Copilot
