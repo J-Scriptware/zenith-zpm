@@ -1,13 +1,50 @@
-A = 10 ;
-B = "hello" ;
+Z = "********** Initializing Variables **********" ;
+PRINT Z ;
+A = 1 ;
+B = 5 ;
+C = "Hello," ;
+D = " World!" ;
+E = -5 ;
+F = "Goodbye!" ;
 PRINT A ;
 PRINT B ;
-A += 5 ;
+PRINT C ;
+PRINT D ;
+PRINT E ;
+PRINT F ;
+
+X = "********** Performing String and Math Operations **********" ;
+PRINT X ;
+C += D ;
+PRINT C ;
+A += B ;
 PRINT A ;
-B += " world" ;
+F += " World!";
+PRINT F ;
+
+Y = "********** Testing Operations **********" ;
+PRINT Y ;
+A += 2 ;
+B -= 1 ;
+E *= -1 ;
+PRINT A ;
 PRINT B ;
-FOR 3 A *= 2 ; PRINT A ; ENDFOR
-C = "Test" ;
+PRINT E ;
+
+V = "********** Executing FOR Loop **********";
+PRINT V ;
+FOR 3 A += 3 ; C += "!" ; ENDFOR
+FOR 2 B += 2 ; E -= 2 ; ENDFOR
+PRINT A ;
+PRINT B ;
 PRINT C ;
-C += " Passed" ;
+PRINT E ;
+
+U = "********** Final values of variables **********" ;
+PRINT U ;
+PRINT A ;
+PRINT B ;
 PRINT C ;
+PRINT D ;
+PRINT E ;
+PRINT F ;
