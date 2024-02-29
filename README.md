@@ -1,7 +1,7 @@
 # Zenith - ZPM Interpreter
 
 ## Introduction
-Zenith is a lightweight and efficient interpreter for ZPM (Z+-) (Zenith Programming Model) code. Designed with simplicity and performance in mind, Zenith allows for easy execution of ZPM scripts, making it ideal for educational purposes and small to medium-scale scripting tasks.
+Zenith is a lightweight and efficient interpreter for ZPM (Z+-) (Zenith Programming Model) code. Zenith's capabilities and design make it an efficient and reliable tool for executing ZPM scripts effectively.
 
 ## Origins
 Zenith is a ZPM language interpreter I developed in my CSE465 course. It adheres closely to provided specifications, showcasing the design and implementation principles of language interpreters. The project employs Java to transform theoretical parsing and interpretation concepts into a working software system. Zenith's development highlights the intersection of theoretical concepts and practical software engineering.
