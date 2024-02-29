@@ -33,4 +33,8 @@ To compile Zenith, follow these steps:
 ## Usage
 To run a ZPM script using Zenith: `java Zpm prog.zpm`
 
+## Academic Integrity Warning
+Please note that Zenith was created as part of a coursework requirement for CSE465. While this project is publicly shared for educational and demonstrative purposes, I strongly advise against using it, or any part of it, for academic submissions by other students. Academic integrity is paramount in all educational endeavors, and submitting this work as your own would not only violate academic honesty policies but also undermine your learning process. If you are a student, I encourage you to use Zenith as a learning tool, not as a shortcut. Always strive to complete your assignments independently to fully benefit from your educational experience.
+
+
 
