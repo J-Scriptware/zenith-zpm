@@ -9,9 +9,9 @@ Zenith is a ZPM language interpreter I developed for my CSE465 course. It adhere
 ## Features
 Zenith's technical framework is designed for robust ZPM script execution, emphasizing:
 
-- **Variable Types**: Directly supports integer and string variables, enabling diverse data manipulation and interaction within scripts.
+- **Variable Types**: Directly supports integer and string variables while emphasizing intuitive data manipulation and interaction within scripts.
 
-- **Arithmetic and Logical Operations**: Facilitates arithmetic (+, -, *) on integers and concatenation for strings, with optimized performance for each operation type.
+- **Arithmetic and Logical Operations**: Supports arithmetic (+=, -=, *=) on integers, with support for string concatenation.
 
 - **For Loops**: Implements for loop constructs. This capability supports iterative execution over blocks of code, enhancing script logic by allowing the execution of repeating tasks.
 
