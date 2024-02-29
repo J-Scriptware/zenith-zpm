@@ -1,5 +1,6 @@
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -9,43 +10,130 @@ import java.util.Map;
 import java.util.function.BiFunction;
 import java.util.stream.Collectors;
 
+/**
+ * The Zpm class represents a program that reads and processes Zpm code.
+ * It contains methods for validating and reading an input file, processing individual lines of code,
+ * handling exceptions, performing operations, and executing Zpm statements.
+ */
 public class Zpm {
-    public static final String STRING_PATTERN = "\".*\"";
-    public static final String INTEGER_PATTERN = "^-?\\d+$";
-    public static final String PRINT = "PRINT ";
+
+    protected static final String STRING_PATTERN = "\".*\"";
+    protected static final String INTEGER_PATTERN = "^-?\\d+$";
+    protected static final String PRINT = "PRINT ";
+    protected static final int PRINT_PREFIX_LENGTH = PRINT.length();
+
+    /**
+     * This variable stores a collection of operator functions for performing operations on objects.
+     * The key is a String representing the operator symbol, and the value is a BiFunction that takes two
+     * objects as input and returns an object as the result of the operation.
+     */
     protected static final HashMap<String, BiFunction<Object, Object, Object>> operators;
-    protected static final Map<String, Object> variables = new HashMap<>();
-    // Add line here:
-    protected static List<String> lines = new ArrayList<>();
 
     static {
         operators = new HashMap<>();
-        operators.put("=", (a, b) -> b);
-        operators.put("+=", (a, b) -> {
-            if (a instanceof Integer && b instanceof Integer) {
-                return ((Integer) a) + ((Integer) b);
-            } else if (a instanceof String && b instanceof String) {
-                return a + (String) b;
-            } else {
-                throw new IllegalArgumentException("Mismatched types for '+=' operation");
-            }
-        });
-        operators.put("-=", (a, b) -> {
-            if (a instanceof Integer && b instanceof Integer) {
-                return ((Integer) a) - ((Integer) b);
-            } else {
-                throw new IllegalArgumentException("'-=' operation only supported for integers");
-            }
-        });
-        operators.put("*=", (a, b) -> {
-            if (a instanceof Integer && b instanceof Integer) {
-                return ((Integer) a) * ((Integer) b);
-            } else {
-                throw new IllegalArgumentException("'*=' operation only supported for integers");
-            }
-        });
+        operators.put("=", Object::equals);
+        operators.put("+=", Zpm::additionOperator);
+        operators.put("-=", Zpm::subtractionOperator);
+        operators.put("*=", Zpm::multiplicationOperator);
     }
 
+    /**
+     * A Map that stores variables as key-value pairs.
+     * The keys are Strings representing the variable names,
+     * and the values are Objects representing the variable values.
+     */
+    protected static final Map<String, Object> variables = new HashMap<>();
+
+    /**
+     * This variable stores a list of strings representing lines of ZPM code.
+     */
+    protected static List<String> lines = new ArrayList<>();
+
+    public static void main(String[] args) throws ZpmRuntimeException {
+        try {
+            lines = validateAndReadFile(args);  // Assign the read lines to the static attribute
+            lines.removeIf(String::isEmpty);
+            lines = lines.stream().map(String::trim).collect(Collectors.toList());
+            int lineNum = 1;
+            for (String line : lines) {
+                processLine(line, lineNum);
+                lineNum++;
+            }
+        } catch (Exception e) {
+            printError(e);
+            throw new ZpmRuntimeException("An unexpected error occurred", 0);
+        }
+    }
+
+    /**
+     * Validates and reads the contents of the input file specified as a command line argument.
+     * Throws an exception if the input file is invalid or does not exist.
+     *
+     * @param args The command line arguments. The first argument should be the path to the input file.
+     * @return A list of strings representing the lines of the input file.
+     * @throws ZpmRuntimeException      If an unexpected error occurs during the execution of the Zpm program.
+     * @throws IllegalArgumentException If the input file is invalid or does not exist.
+     * @throws IOException              If an IO error occurs while reading the input file.
+     */
+    private static List<String> validateAndReadFile(String[] args) throws ZpmRuntimeException, IllegalArgumentException, IOException {
+        if (args.length != 1 || !args[0].endsWith(".zpm")) {
+            throw new IllegalArgumentException("Error: Please provide a .zpm file as an argument.");
+        }
+        Path filePath;
+        try {
+            filePath = Paths.get(args[0]);
+        } catch (InvalidPathException e) {
+            throw new IllegalArgumentException("Invalid path provided as argument", e);
+        }
+        if (!Files.exists(filePath)) {
+            throw new IOException("Error: File does not exist.");
+        }
+        return Files.readAllLines(filePath);
+    }
+
+    /**
+     * Processes a single line of code in the Zpm program.
+     *
+     * @param line    The line of code to be processed.
+     * @param lineNum The line number of the code in the input file.
+     * @throws IllegalArgumentException If the line provided is null or does not start with a valid keyword.
+     * @throws ZpmRuntimeException      If an error occurs during the processing of the line.
+     */
+    public static void processLine(String line, int lineNum) {
+        if (line.startsWith(PRINT)) {
+            processPrintStatement(line, lineNum);
+        } else if (line.startsWith("FOR ")) {
+            processForLoop(line, lineNum);
+        } else {
+            processAssignment(line, lineNum);
+        }
+    }
+
+    /**
+     * Prints an error message based on the given exception.
+     * If the exception is an instance of IOException, it prints "I/O Error: " followed by the exception message.
+     * If the exception is an instance of ZpmRuntimeException, it prints the exception message.
+     * For any other exception, it prints "Unexpected Error: " followed by the exception message.
+     *
+     * @param e The exception to be printed.
+     */
+    public static void printError(Exception e) {
+        if (e instanceof IOException) {
+            System.out.println("I/O Error: " + e.getMessage());
+        } else if (e instanceof ZpmRuntimeException) {
+            System.out.println(e.getMessage());
+        } else {
+            System.out.println("Unexpected Error: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Processes an assignment statement in the Zpm program.
+     *
+     * @param line    The assignment statement to be processed.
+     * @param lineNum The line number of the assignment statement in the input file.
+     * @throws ZpmRuntimeException If an unrecognized operation or invalid format is found in the assignment statement.
+     */
     private static void processAssignment(String line, int lineNum) throws ZpmRuntimeException {
         String[] operations = new String[]{"+=", "-=", "*=", "="};
         String[] parts = null;
@@ -73,6 +161,15 @@ public class Zpm {
         assignOrModifyValue(varName, valueStr, operation, lineNum);
     }
 
+    /**
+     * Assigns or modifies the value of a variable based on the given parameters.
+     *
+     * @param varName   The name of the variable.
+     * @param valueStr  The value of the variable as a String.
+     * @param operation The operation to perform on the variable. Valid operations are "+=", "-=", "*=", and "=".
+     * @param lineNum   The line number in the input file where the assignment is made.
+     * @throws ZpmRuntimeException If the valueStr is not a valid integer or string, or if the variable name is unrecognized.
+     */
     private static void assignOrModifyValue(String varName, String valueStr, String operation, int lineNum) {
         Object newValue;
 
@@ -94,6 +191,15 @@ public class Zpm {
         performOperation(varName, newValue, operation, lineNum);
     }
 
+    /**
+     * Performs an operation on a variable based on the given parameters.
+     *
+     * @param varName   The name of the variable.
+     * @param newValue  The new value to be applied to the variable.
+     * @param operation The operation to perform on the variable. Valid operations are "+=", "-=", "*=", and "=".
+     * @param lineNum   The line number in the input file where the operation is performed.
+     * @throws ZpmRuntimeException If an unsupported operation or type mismatch occurs.
+     */
     private static void performOperation(String varName, Object newValue, String operation, int lineNum) {
         var operator = operators.get(operation);
         if (operator == null) {
@@ -115,114 +221,120 @@ public class Zpm {
         }
     }
 
-    private static void processForLoop(String line, int currentLineNum) {
-        String[] parts = line.split(" ", 2);
+    /**
+     * Processes a FOR loop statement in the Zpm program.
+     *
+     * @param line    The line containing the FOR loop statement.
+     * @param lineNum The line number of the FOR loop statement in the input file.
+     * @throws RuntimeException If the FOR loop syntax is invalid or if any errors occur during the execution of the loop.
+     */
+    private static void processForLoop(String line, int lineNum) {
+        String[] parts = line.split(" ", 3); // Split on the first two spaces
 
-        if (parts.length < 2 || !parts[1].matches("\\d+ .*")) {
-            throw new ZpmRuntimeException("Invalid syntax for FOR loop at line ", currentLineNum);
+        if (parts.length != 3) {
+            throw new ZpmRuntimeException("Expected format: FOR n <statements> ENDFOR. Invalid FOR loop at line ", lineNum);
         }
 
+        // Extract loop count
         int loopCount;
         try {
-            loopCount = Integer.parseInt(parts[1].split(" ", 2)[0]);
+            loopCount = Integer.parseInt(parts[1]);
         } catch (NumberFormatException e) {
-            throw new ZpmRuntimeException("Invalid loop count in FOR statement at line ", currentLineNum);
+            throw new ZpmRuntimeException("Invalid loop count in FOR loop at line ", lineNum);
         }
 
+        // Detect invalid loop count
         if (loopCount <= 0) {
-            throw new ZpmRuntimeException("Loop count should be a positive number at line ", currentLineNum);
+            throw new ZpmRuntimeException("FOR loop count should be > 0 at line ", lineNum);
         }
 
-        // We are replacing all ENDFOR with ""; as we don't have nested loops and each FOR matches with the next ENDFOR
-        String loopBody = parts[1].replace("ENDFOR", "").trim();
-        String[] stmtsInsideLoop = loopBody.split(";");
+        // Split loop statements by ";"
+        String[] assignments = parts[2].replace("; ENDFOR", "").split(";");
 
+        // Execute loop
         for (int i = 0; i < loopCount; i++) {
-            for (String stmt : stmtsInsideLoop) {
-                stmt = stmt.trim(); // Trim the statement to remove potential leading or trailing spaces
-                if (!stmt.isEmpty()) {
-                    processStatement(stmt, currentLineNum);
-                }
+            for (String assignment : assignments) {
+                // Process each assignment statement inside the loop
+                processAssignment(assignment.trim(), lineNum);
             }
         }
     }
 
-    private static void processStatement(String statement, int lineNum) {
-        if (statement.startsWith(PRINT)) {
-            processPrintStatement(statement, lineNum);
-        } else if (statement.startsWith("FOR ")) {
-            processForLoop(statement, lineNum);
-        } else {
-            processAssignment(statement, lineNum);
-        }
-    }
-
+    /**
+     * Processes a PRINT statement in the Zpm program.
+     *
+     * @param line    The line of code to be processed.
+     * @param lineNum The line number of the code in the input file.
+     * @throws IllegalArgumentException  If the line provided is null or does not start with the PRINT keyword.
+     * @throws ZpmRuntimeException       If an error occurs during the processing of the PRINT statement.
+     * @throws IndexOutOfBoundsException If the format of the PRINT statement is invalid.
+     */
     private static void processPrintStatement(String line, int lineNum) {
         if (line == null || !line.startsWith(PRINT)) {
             throw new IllegalArgumentException("Invalid line provided for processPrintStatement");
         }
-
         String varName;
         try {
-            varName = line.substring(6).replace(";", "").trim();
-            System.out.println(varName);
+            varName = line.substring(PRINT_PREFIX_LENGTH).replace(";", "").trim();
         } catch (IndexOutOfBoundsException e) {
             throw new ZpmRuntimeException("Invalid format of PRINT statement at line: " + lineNum, lineNum);
         }
-
         Object value = Zpm.variables.get(varName);
         if (value == null) {
             throw new ZpmRuntimeException("Unknown variable '" + varName + "'", lineNum);
         }
-        synchronized (Zpm.variables) {
-            System.out.println(varName + "=" + value);
-        }
+
+        System.out.println(varName + "=" + value);
     }
 
-    public static void processLine(String line, int lineNum) {
-        if (line.startsWith(PRINT)) {
-            processPrintStatement(line, lineNum);
-        } else if (line.startsWith("FOR ")) {
-            processForLoop(line, lineNum);
+    /**
+     * Performs addition operation on two objects.
+     *
+     * @param a The first object.
+     * @param b The second object.
+     * @return The result of the addition operation.
+     * @throws IllegalArgumentException If the objects are not of compatible types for addition.
+     */
+    protected static Object additionOperator(Object a, Object b) {
+        return switch (a) {
+            case Integer i when b instanceof Integer -> i + ((Integer) b);
+            case String s when b instanceof String -> s + b;
+            case String s when b instanceof Integer -> s + b;
+            case Integer i when b instanceof String -> i + (String) b;
+            case null, default -> throw new IllegalArgumentException("Mismatched types for '+=' operation");
+        };
+    }
+
+    /**
+     * Performs subtraction operation on two objects.
+     *
+     * @param a The minuend.
+     * @param b The subtrahend.
+     * @return The result of the subtraction operation.
+     * @throws IllegalArgumentException If the objects are not of compatible types for subtraction.
+     */
+    protected static Object subtractionOperator(Object a, Object b) {
+        if (a instanceof Integer && b instanceof Integer) {
+            return ((Integer) a) - ((Integer) b);
         } else {
-            processAssignment(line, lineNum);
+            throw new IllegalArgumentException("'-=' operation only supported for integers");
         }
     }
 
-    public static void printError(Exception e) {
-        if (e instanceof IOException) {
-            System.out.println("I/O Error: " + e.getMessage());
-        } else if (e instanceof ZpmRuntimeException) {
-            System.out.println(e.getMessage());
+    /**
+     * Performs multiplication operation on two objects.
+     *
+     * @param a The first object.
+     * @param b The second object.
+     * @return The result of the multiplication operation.
+     * @throws IllegalArgumentException If the objects are not of compatible types for multiplication.
+     */
+    protected static Object multiplicationOperator(Object a, Object b) {
+        if (a instanceof Integer && b instanceof Integer) {
+            return ((Integer) a) * ((Integer) b);
         } else {
-            System.out.println("Unexpected Error: " + e.getMessage());
+            throw new IllegalArgumentException("'*=' operation only supported for integers");
         }
-    }
-
-    public static void main(String[] args) throws ZpmRuntimeException {
-        try {
-            lines = validateAndReadFile(args);  // Assign the read lines to the static attribute
-            lines.removeIf(String::isEmpty);
-            lines = lines.stream().map(String::trim).collect(Collectors.toList());
-            int lineNum = 1;
-            for (String line : lines) {
-                processLine(line, lineNum);
-                lineNum++;
-            }
-        } catch (Exception e) {
-            printError(e);
-        }
-    }
-
-    private static List<String> validateAndReadFile(String[] args) throws ZpmRuntimeException, IOException {
-        if (args.length != 1 || !args[0].endsWith(".zpm")) {
-            throw new IOException("Error: Please provide a .zpm file as an argument.");
-        }
-        Path filePath = Paths.get(args[0]);
-        if (!Files.exists(filePath)) {
-            throw new IOException("Error: File does not exist.");
-        }
-        return Files.readAllLines(filePath);
     }
 
     public static class ZpmRuntimeException extends RuntimeException {
