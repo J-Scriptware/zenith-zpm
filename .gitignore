@@ -4,3 +4,7 @@
 out
 gen
 !/.idea/
+
+/Zpm$ZpmRuntimeException.class
+/Zpm.class
+
